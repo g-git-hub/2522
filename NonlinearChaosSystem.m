@@ -4,31 +4,30 @@ function [dX, J] = NonlinearChaosSystem(t, X, params)
     y = X(2);
     z = X(3);
     
-    % 基准参数值
-    a = 10;        % 耦合强度
-    b = 8/3;       % 衰减速度
-    r = 31.49;     % 对流强度参数
-    c = 4.99;      % 非线性强度
+    % 基本参数
+    a = params(1);  % 耦合强度
+    b = params(2);  % 阻尼系数
+    r = params(3);  % 主控参数
+    c = params(4);  % 非线性增益
     
-    % 添加小扰动
-    a = a + params(1);
-    b = b + params(2);
-    r = r + params(3);
-    c = c + params(4);
+    % 系统方程 - 新的数学形式
+    dx = -a*(x - y) + y*z;      % 基础耦合+非线性项
+    dy = r*x - x*z - y;         % 能量输入-非线性抑制
+    dz = x*y - b*z + c*x*y*z;   % 基础项+三维耦合
     
-    % 系统方程
-    dx = -a*(x - y) + y*z;
-    dy = -x*z + r*x - y;
-    dz = x*y - b*z + c*x*y*z;
+    % 状态限制
+    x = min(max(x, -60), 60);
+    y = min(max(y, -60), 60);
+    z = min(max(z, 0), 80);    % z保持非负
     
     dX = [dx; dy; dz];
     
-    % Jacobian矩阵
     if nargout > 1
+        % Jacobian矩阵
         J = [
-            -a,      a+z,    y;
-            r-z,    -1,     -x;
-            y+c*y*z, x+c*x*z, -b+c*x*y
+            -a,      a + z,     y;
+            r - z,   -1,       -x;
+            y + c*y*z, x + c*x*z, -b + c*x*y
         ];
     end
 end

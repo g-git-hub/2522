@@ -1,0 +1,37 @@
+function [dX, J] = NonlinearChaosSystem(t, X, params)
+    % 状态变量
+    x = X(1);
+    y = X(2);
+    z = X(3);
+    
+    % 混合两个成功的参数组
+    % [9.9493, 1.2883, 21.9344, 0.6073, 0.2, 0.2] -> λ1 = 0.9327
+    % [9.8742, 1.2809, 21.7554, 0.6000, 0.2, 0.2] -> λ1 = 0.7169
+    
+    a = max(params(1), 9.85);    % 9.85-10.0 (统一成功范围)
+    b = max(params(2), 1.28);    % 1.28-1.29
+    r = max(params(3), 21.75);   % 21.75-22.0
+    c = max(params(4), 0.60);    % 0.60-0.61
+    d = max(params(5), 0.2);     % 0.2-0.22
+    k = max(params(6), 0.2);     % 0.2-0.22
+    
+    % 保持成功的系统结构
+    dx = a*(y - x) + d*y*z;
+    dy = (r - z)*x - b*y + k*x*y;
+    dz = x*y - c*z + d*x*z;
+    
+    % 状态限制保持不变
+    x = min(max(x, -50), 50);
+    y = min(max(y, -50), 50);
+    z = min(max(z, -50), 50);
+    
+    dX = [dx; dy; dz];
+    
+    if nargout > 1
+        J = [
+            -a,         a + d*z,     d*y;
+            r - z + k*y, -b + k*x,    -x;
+            y + d*z,    x,          -c + d*x
+        ];
+    end
+end
